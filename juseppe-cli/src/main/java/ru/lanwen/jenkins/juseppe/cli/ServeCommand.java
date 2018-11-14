@@ -1,23 +1,18 @@
 package ru.lanwen.jenkins.juseppe.cli;
 
-import io.airlift.airline.Arguments;
-import io.airlift.airline.Command;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.Slf4jRequestLog;
-import org.eclipse.jetty.server.handler.RequestLogHandler;
-import org.eclipse.jetty.servlet.DefaultServlet;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
-import org.eclipse.jetty.util.resource.Resource;
-import org.eclipse.jetty.util.resource.ResourceCollection;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import ru.lanwen.jenkins.juseppe.files.WatchStarter;
-import ru.lanwen.jenkins.juseppe.props.Props;
-import ru.lanwen.jenkins.juseppe.serve.GenStarter;
-import java.net.InetSocketAddress;
+import io.airlift.airline.*;
+import org.eclipse.jetty.server.*;
+import org.eclipse.jetty.server.handler.*;
+import org.eclipse.jetty.servlet.*;
+import org.eclipse.jetty.util.resource.*;
+import org.slf4j.*;
+import ru.lanwen.jenkins.juseppe.files.*;
+import ru.lanwen.jenkins.juseppe.props.*;
+import ru.lanwen.jenkins.juseppe.serve.*;
 
-import static ru.lanwen.jenkins.juseppe.files.WatchFiles.watchFor;
+import java.net.*;
+
+import static ru.lanwen.jenkins.juseppe.files.WatchFiles.*;
 
 /**
  * @author lanwen (Merkushev Kirill)
@@ -27,7 +22,7 @@ public class ServeCommand extends JuseppeCommand {
 
     private static final String HPI_EXT = "*.hpi";
     private static final String JPI_EXT = "*.jpi";
-    
+
     private static final Logger LOG = LoggerFactory.getLogger(ServeCommand.class);
 
     @Arguments(title = "port", description = "Port to bind jetty on")
@@ -35,12 +30,10 @@ public class ServeCommand extends JuseppeCommand {
 
     @Override
     public void unsafeRun(Props props) throws Exception {
-        Server server;
-        if (port == -1) {
-            server = new Server(new InetSocketAddress(props.getHost(),props.getPort()));
-        } else {
-            server = new Server(port);
+        if (port != -1) {
+            props.setPort(port);
         }
+        Server server = new Server(new InetSocketAddress(props.getHost(), props.getPort()));
 
         server.addLifeCycleListener(new GenStarter(props));
 
@@ -60,11 +53,17 @@ public class ServeCommand extends JuseppeCommand {
                 "/" + props.getUcJsonName()
         );
         context.addServlet(
-                new ServletHolder("release-history",
-                new DefaultServlet()), "/" + props.getReleaseHistoryJsonName()
+                new ServletHolder("release-history", new DefaultServlet()),
+                "/" + props.getReleaseHistoryJsonName()
         );
-        context.addServlet(new ServletHolder("plugins-hpi", new DefaultServlet()), HPI_EXT);
-        context.addServlet(new ServletHolder("plugins-jpi", new DefaultServlet()), JPI_EXT);
+        context.addServlet(
+                new ServletHolder("plugins-hpi", new DefaultServlet()),
+                HPI_EXT
+        );
+        context.addServlet(
+                new ServletHolder("plugins-jpi", new DefaultServlet()),
+                JPI_EXT
+        );
 
         Slf4jRequestLog requestLog = new Slf4jRequestLog();
         requestLog.setLogDateFormat(null);

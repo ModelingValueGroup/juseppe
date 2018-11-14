@@ -5,7 +5,7 @@ import ru.qatools.properties.PropertyLoader;
 import ru.qatools.properties.providers.DefaultPropertyProvider;
 
 import java.io.File;
-import java.net.URI;
+import java.net.*;
 import java.util.Properties;
 import java.util.stream.Stream;
 
@@ -58,12 +58,6 @@ public final class Props {
     @Property(JuseppeEnvVars.JUSEPPE_CERT_PATH)
     private String certPath = new File("uc.crt").getAbsolutePath();
 
-    @Property(JuseppeEnvVars.JUSEPPE_BIND_PORT)
-    private int port = 8080;
-
-    @Property(JuseppeEnvVars.JUSEPPE_BIND_HOST)
-    private String host = "localhost";
-
     @Property(JuseppeEnvVars.JUSEPPE_BASE_URI)
     private URI baseurl = URI.create("http://localhost:8080");
 
@@ -94,11 +88,11 @@ public final class Props {
     }
 
     public int getPort() {
-        return port;
+        return getBaseurl().getPort();
     }
 
     public String getHost() {
-        return host;
+        return getBaseurl().getHost();
     }
 
     public String getKeyPath() {
@@ -147,13 +141,13 @@ public final class Props {
         return this;
     }
 
-    public Props withPort(int port) {
-        this.port = port;
+    public Props withPort(int port) throws URISyntaxException {
+        setPort(port);
         return this;
     }
 
-    public Props withHost(String host) {
-        this.host = host;
+    public Props withHost(String host) throws URISyntaxException {
+        setHost(host);
         return this;
     }
 
@@ -196,12 +190,12 @@ public final class Props {
         this.certPath = certPath;
     }
 
-    public void setPort(int port) {
-        this.port = port;
+    public void setPort(int port) throws URISyntaxException {
+        baseurl = new URI(baseurl.getScheme(), baseurl.getUserInfo(), baseurl.getHost(), port, baseurl.getPath(), baseurl.getQuery(), baseurl.getFragment());
     }
 
-    public void setHost(String host) {
-        this.host = host;
+    public void setHost(String host) throws URISyntaxException {
+        baseurl = new URI(baseurl.getScheme(), baseurl.getUserInfo(), host, baseurl.getPort(), baseurl.getPath(), baseurl.getQuery(), baseurl.getFragment());
     }
 
     public void setBaseurl(URI baseurl) {
